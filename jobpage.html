@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Job Board</title>
+
+  <!-- React and Babel CDNs -->
+  <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+  <!-- Basic CSS -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      margin: 0;
+      background-color: #bfd30f;
+    }
+    h1, h2 {
+      color: #2c3e50;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+    }
+    .job-card {
+      background: #fff;
+      padding: 16px;
+      margin: 12px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .form-group {
+      margin: 10px 0;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+      background: #3498db;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #2980b9;
+    }
+    @media (max-width: 600px) {
+      .job-card {
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+
+  <!-- React App -->
+  <script type="text/babel">
+
+    const { useState, useEffect } = React;
+
+    function App() {
+      const [jobs, setJobs] = useState([]);
+      const [form, setForm] = useState({ title: '', company: '', location: '', description: '' });
+      const [selectedJob, setSelectedJob] = useState(null);
+
+      // Fetch all jobs
+      useEffect(() => {
+        fetch('/api/jobs')
+          .then(res => res.json())
+          .then(data => setJobs(data));
+      }, []);
+
+      // Handle input change
+      const handleChange = (e) => {
+        const { name, value } = e.target;
+        setForm(prev => ({ ...prev, [name]: value }));
+      };
+
+      // Post a new job
+      const postJob = () => {
+        fetch('/api/jobs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(form)
+        })
+          .then(res => res.json())
+          .then(data => {
+            setJobs(prev => [...prev, data]);
+            setForm({ title: '', company: '', location: '', description: '' });
+            alert("Job posted successfully!");
+          });
+      };
+
+      return (
+        <div className="container">
+          <h1>Job Board Portal</h1>
+
+          <section>
+            <h2>Post a Job</h2>
+            <div className="form-group">
+              <label>Job Title</label>
+              <input name="title" value={form.title} onChange={handleChange} />
+            </div>
+            <div className="form-group">
+              <label>Company Name</label>
+              <input name="company" value={form.company} onChange={handleChange} />
+            </div>
+            <div className="form-group">
+              <label>Location</label>
+              <input name="location" value={form.location} onChange={handleChange} />
+            </div>
+            <div className="form-group">
+              <label>Description</label>
+              <textarea name="description" rows="4" value={form.description} onChange={handleChange}></textarea>
+            </div>
+            <button onClick={postJob}>Post Job</button>
+          </section>
+
+          <hr />
+
+          <section>
+            <h2>Available Jobs</h2>
+            {jobs.map((job, index) => (
+              <div key={index} className="job-card" onClick={() => setSelectedJob(job)}>
+                <h3>{job.title}</h3>
+                <p><strong>{job.company}</strong> — {job.location}</p>
+                <p>{job.description.substring(0, 100)}...</p>
+              </div>
+            ))}
+          </section>
+
+          {selectedJob && (
+            <section>
+              <h2>Job Details</h2>
+              <div className="job-card">
+                <h3>{selectedJob.title}</h3>
+                <p><strong>Company:</strong> {selectedJob.company}</p>
+                <p><strong>Location:</strong> {selectedJob.location}</p>
+                <p><strong>Description:</strong></p>
+                <p>{selectedJob.description}</p>
+                <button onClick={() => setSelectedJob(null)}>Close</button>
+              </div>
+            </section>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+
+  </script>
+  <script src="./jobpage server.js"></script>
+</body>
+</html>
+        
